@@ -52,22 +52,9 @@ public class LogProcessor
                         // remove the jobid from the dictionary as we have processed it and no longer need it
                         jobs.Remove(jobid);
                     }
-                    else
-                    {
-                        // if no end event found then write it to the console.    
-                        Console.WriteLine($"Warning: START event for job {jobid} without matching END.");
-                    }
                 }
             }
-
             // check the dictionary to see if there is any data in it - these will be be jobs that started but never ended - log these to console
-            if (jobs.Count > 0)
-            {
-                //Console.WriteLine("Warning: Some jobs never ended:");
-                foreach (var job in jobs)
-                {
-                    Console.WriteLine($"Warning: Job {job.Key} started at {job.Value:HH:mm:ss} but no END found");
-                }
-            }
+            _logger.HandleMissingEntries(jobs);
         }
     }

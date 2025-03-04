@@ -21,4 +21,15 @@ using System.IO;
                 Console.WriteLine($"WARNING: Job {jobid} took {durationText}");
             }
         }
+        public void HandleMissingEntries(Dictionary<string, DateTime> entries) {
+    
+        if (entries.Count > 0)
+            {
+                //Console.WriteLine("Warning: Some jobs never ended:");
+                foreach (var entry in entries)
+                {
+                    Console.WriteLine($"Warning: Job {entry.Key} did not complete");
+                }
+            }
+        }
     }

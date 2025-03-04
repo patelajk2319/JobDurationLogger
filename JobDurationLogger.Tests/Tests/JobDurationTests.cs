@@ -8,6 +8,7 @@ namespace JobDurationLogger.Tests
 {
     public class LogProcessorTests
     {
+        
         // TEST 1 
         [Fact]
         public void ProcessLogFile_ShouldLogWarning_ForJobExceeding_5_Minutes()
@@ -16,11 +17,11 @@ namespace JobDurationLogger.Tests
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
 
-            string logContent = @"
+            var logContent = @"
                 12:00:00,Job A,START,1001
                 12:06:00,Job A,END,1001";
 
-            string filePath = WriteLogToTempFile(logContent);
+            var filePath = WriteLogToTempFile(logContent);
 
             // Act
             processor.ProcessLogFile(filePath);
@@ -37,11 +38,11 @@ namespace JobDurationLogger.Tests
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
 
-            string logContent = @"
+            var logContent = @"
                 12:00:00,Job B,START,2002
                 12:11:00,Job B,END,2002";
 
-            string filePath = WriteLogToTempFile(logContent);
+            var filePath = WriteLogToTempFile(logContent);
 
             // Act
             processor.ProcessLogFile(filePath);
@@ -58,11 +59,11 @@ namespace JobDurationLogger.Tests
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
 
-            string logContent = @"
+            var logContent = @"
                 12:00:00,Job C,START,3003
                 12:03:00,Job C,END,3003";
 
-            string filePath = WriteLogToTempFile(logContent);
+            var filePath = WriteLogToTempFile(logContent);
 
             // Act
             processor.ProcessLogFile(filePath);
@@ -71,8 +72,7 @@ namespace JobDurationLogger.Tests
             Assert.Empty(mockLogger.LoggedMessages);  
         }
 
-
-        // TEST 4 - PROBMR
+        // TEST 4 - 
         [Fact]
         public void ProcessLogFile_ShouldLogWarning_For_No_End()
         {
@@ -80,17 +80,20 @@ namespace JobDurationLogger.Tests
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
 
-            string logContent = @"
+            var logContent = @"
                 12:00:00,Job C,START,3003";
 
-            string filePath = WriteLogToTempFile(logContent);
+            var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            Assert.Contains("Warning: Job 3003 started at 12:00:00 but no END found", mockLogger.LoggedMessages);
+            processor.ProcessLogFile(filePath);
+
+            // Assert
+            Assert.Contains("Warning: Job 3003 did not complete", mockLogger.LoggedMessages);
 
         }
 
-        private string WriteLogToTempFile(string content)
+        private static string WriteLogToTempFile(string content)
         {
             var tempFile = Path.GetTempFileName();
             File.WriteAllText(tempFile, content.Trim());
@@ -98,27 +101,4 @@ namespace JobDurationLogger.Tests
         }
     }
 
-    public class MockJobDurationLogger : IJobDurationLogger
-    {
-        public List<string> LoggedMessages { get; } = new List<string>();
-
-        //Reimplent as Logduration logs to console, we need own version here so that we can check logs locally via the test project
-        //seems messy to me so needs looking at...    
-        public void LogDuration(string jobid, double durationSeconds)
-        {
-            
-            int minutes = (int)(durationSeconds / 60);
-            int seconds = (int)(durationSeconds % 60);
-            string durationText = $"{minutes}Min and {seconds}Sec";
-
-            if (durationSeconds > 600)
-            {
-                LoggedMessages.Add($"ERROR: Job {jobid} took {durationText}");
-            }
-            else if (durationSeconds > 300)
-            {
-                LoggedMessages.Add($"WARNING: Job {jobid} took {durationText}");
-            }
-        }
-    }
 }
