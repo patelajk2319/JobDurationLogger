@@ -54,4 +54,5 @@ dotnet test
 ## Future Improvements
 1. Write logs to file or any location instead of logging to Console
 2. Multi Threading support to handle large files
-3. SOLID Principles
+3. Add Dependency Injection
+4. Move Duration Timings to Config Files so duration can be managed centrally.
