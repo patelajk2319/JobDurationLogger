@@ -16,6 +16,7 @@ namespace JobDurationLogger.Tests
             // Arrange
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
+            var expectedMessage = "WARNING: Job 1001 took more than 5 minutes";
 
             var logContent = @"
                 12:00:00,Job A,START,1001
@@ -24,10 +25,11 @@ namespace JobDurationLogger.Tests
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            processor.ProcessLogFile(filePath);
+            var model = processor.ProcessLogFile(filePath);
+            var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains("WARNING: Job 1001 took 6Min and 0Sec", mockLogger.LoggedMessages);
+            Assert.Contains(acutalMessage, expectedMessage);
         }
 
         // TEST 2
@@ -37,18 +39,20 @@ namespace JobDurationLogger.Tests
             // Arrange
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
+            var expectedMessage = "ERROR: Job 1001 took more than 10 minutes";
 
             var logContent = @"
-                12:00:00,Job B,START,2002
-                12:11:00,Job B,END,2002";
+                12:00:00,Job A,START,1001
+                12:11:00,Job A,END,1001";
 
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            processor.ProcessLogFile(filePath);
+            var model = processor.ProcessLogFile(filePath);
+            var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains("ERROR: Job 2002 took 11Min and 0Sec", mockLogger.LoggedMessages);
+            Assert.Contains(acutalMessage, expectedMessage);
         }
 
         // TEST 3
@@ -66,10 +70,10 @@ namespace JobDurationLogger.Tests
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            processor.ProcessLogFile(filePath);
+            var model = processor.ProcessLogFile(filePath);
 
             // Assert
-            Assert.Empty(mockLogger.LoggedMessages);  
+            Assert.Empty(model);
         }
 
         // TEST 4 - 
@@ -79,6 +83,7 @@ namespace JobDurationLogger.Tests
             // Arrange
             var mockLogger = new MockJobDurationLogger();
             var processor = new LogProcessor(mockLogger);
+            var expectedMessage = "WARNING: Job 3003 started but did not finish";
 
             var logContent = @"
                 12:00:00,Job C,START,3003";
@@ -86,10 +91,11 @@ namespace JobDurationLogger.Tests
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            processor.ProcessLogFile(filePath);
+            var model = processor.ProcessLogFile(filePath);
+            var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains("Warning: Job 3003 did not complete", mockLogger.LoggedMessages);
+            Assert.Contains(acutalMessage, expectedMessage);
 
         }
 

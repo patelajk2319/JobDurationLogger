@@ -12,9 +12,10 @@ public class LogProcessor
             _logger = logger;
         }
 
-        public void ProcessLogFile(string filePath)
+        public List<ErrorModel> ProcessLogFile(string filePath)
         {
             var jobs = new Dictionary<string, DateTime>();
+            var errorModel = new List<ErrorModel>();
 
             // Read all the lines into memory
             var lines = File.ReadAllLines(filePath);
@@ -47,14 +48,37 @@ public class LogProcessor
                         // if "End" event found - calculate the duration    
                         var durationSeconds = (time - startTime).TotalSeconds;
                         // send to the logge
-                        _logger.LogDuration(jobid, durationSeconds);
+                        var morethan5Mins = _logger.TookLongerThanExpected(durationSeconds, 5, 10);
+                        var morethan10Mins = _logger.TookLongerThanExpected(durationSeconds, 10, 100);
+                        var lessthaan5Mins =  _logger.TookLongerThanExpected(durationSeconds, 0, 5);
 
-                        // remove the jobid from the dictionary as we have processed it and no longer need it
-                        jobs.Remove(jobid);
-                    }
+                        //Check jobs more 5 min , less than 10, 
+                        if (morethan5Mins) {
+                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"WARNING: Job {jobid} took more than 5 minutes"});
+                            jobs.Remove(jobid);
+                        } 
+                          //Check jobs more 10 min, 
+                        else if (morethan10Mins) {
+                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"ERROR: Job {jobid} took more than 10 minutes"});    
+                            jobs.Remove(jobid);
+                        }
+                          //Check jobs less 5 min, 
+                        else if (lessthaan5Mins) {
+                             jobs.Remove(jobid);
+                        }
+                }
+            }         
+
+        }
+        // check the dictionary to see if there is any data in it - these will be be jobs that started but never ended - log these to console
+            if (jobs.Count > 0) {
+                 
+                foreach (var job in jobs)
+                {
+                    errorModel.Add(new ErrorModel{ Id= job.Key, DurationMessage = $"WARNING: Job {job.Key} started but did not finish"});
                 }
             }
-            // check the dictionary to see if there is any data in it - these will be be jobs that started but never ended - log these to console
-            _logger.HandleMissingEntries(jobs);
-        }
+
+        return errorModel;
     }
+}

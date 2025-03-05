@@ -5,31 +5,19 @@ using System.IO;
     
     public class JobDurationLogger : IJobDurationLogger
     {
-        public void LogDuration(string jobid, double durationSeconds)
-        {
-            var minutes = (int)(durationSeconds / 60);
-            var seconds = (int)(durationSeconds % 60);
 
-            var durationText = $"{minutes}min {seconds}sec";
+        // Checks to see if a job took longer than expected
+        public bool TookLongerThanExpected(double durationSeconds, int MinMinutes, int MaxMinutes) {
 
-            if (durationSeconds > 600) // 10 minutes
+            var MinMinutesSeconds = (int)(MinMinutes * 60); // Convert to seconds
+            var MaxMinutesSeconds = (int)(MaxMinutes * 60);  // Convert to seconds
+
+            if (durationSeconds > MinMinutesSeconds && durationSeconds < MaxMinutesSeconds) 
             {
-                Console.WriteLine($"ERROR: Job {jobid} took {durationText}");
+                return true;
             }
-            else if (durationSeconds > 300) // 5 minutes
-            {
-                Console.WriteLine($"WARNING: Job {jobid} took {durationText}");
-            }
-        }
-        public void HandleMissingEntries(Dictionary<string, DateTime> entries) {
-    
-        if (entries.Count > 0)
-            {
-                //Console.WriteLine("Warning: Some jobs never ended:");
-                foreach (var entry in entries)
-                {
-                    Console.WriteLine($"Warning: Job {entry.Key} did not complete");
-                }
-            }
+
+            return false;
+
         }
     }

@@ -17,6 +17,11 @@ using System.IO;
 
             // process the logs
             var processor = new LogProcessor(new JobDurationLogger());
-            processor.ProcessLogFile(filePath);
+            
+            var errors = processor.ProcessLogFile(filePath);
+
+            foreach (var error in errors) {
+                Console.WriteLine(error.DurationMessage);
+            }
         }
     }

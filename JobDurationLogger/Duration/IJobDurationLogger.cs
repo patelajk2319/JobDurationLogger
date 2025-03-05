@@ -5,6 +5,6 @@ using System.IO;
     
     public interface IJobDurationLogger
     {
-        void LogDuration(string jobid, double durationSeconds);
-        void HandleMissingEntries(Dictionary<string, DateTime> entries);
+        public bool TookLongerThanExpected(double durationSeconds, int MinMinutes, int  MaxMinutes) ;
+
     }
