@@ -7,6 +7,7 @@ using System.IO;
         static void Main()
         {
             const string filePath = "files/logs.csv"; // Update this path as needed
+            ILogProcessor logProcessor = new LogProcessor(new JobDurationLogger());
 
             //check if file exists
             if (!File.Exists(filePath))
@@ -14,11 +15,9 @@ using System.IO;
                 Console.WriteLine($"File not found: {filePath}");
                 return;
             }
-
             // process the logs
-            var processor = new LogProcessor(new JobDurationLogger());
             
-            var errors = processor.ProcessLogFile(filePath);
+            var errors = logProcessor.ProcessLogFile(filePath);
 
             foreach (var error in errors) {
                 Console.WriteLine(error.DurationMessage);

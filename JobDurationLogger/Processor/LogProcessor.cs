@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-public class LogProcessor
+public class LogProcessor : ILogProcessor
     {
         private readonly IJobDurationLogger _logger;
 
