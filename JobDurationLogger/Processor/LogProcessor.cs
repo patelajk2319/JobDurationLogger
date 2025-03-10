@@ -5,13 +5,6 @@ using System.IO;
 
 public class LogProcessor : ILogProcessor
     {
-        private readonly IJobDurationLogger _logger;
-
-        public LogProcessor(IJobDurationLogger logger)
-        {
-            _logger = logger;
-        }
-
         public List<ErrorModel> ProcessLogFile(string filePath)
         {
             var jobs = new Dictionary<string, DateTime>();
@@ -47,24 +40,20 @@ public class LogProcessor : ILogProcessor
                     {
                         // if "End" event found - calculate the duration    
                         var durationSeconds = (time - startTime).TotalSeconds;
-                        // send to the logge
-                        var morethan5Mins = _logger.TookLongerThanExpected(durationSeconds, 5, 10);
-                        var morethan10Mins = _logger.TookLongerThanExpected(durationSeconds, 10, 100);
-                        var lessthaan5Mins =  _logger.TookLongerThanExpected(durationSeconds, 0, 5);
 
-                        //Check jobs more 5 min , less than 10, 
-                        if (morethan5Mins) {
-                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"WARNING: Job {jobid} took more than 5 minutes"});
-                            jobs.Remove(jobid);
-                        } 
-                          //Check jobs more 10 min, 
-                        else if (morethan10Mins) {
-                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"ERROR: Job {jobid} took more than 10 minutes"});    
+                         //ANY JOB LESS THAN 5 MINUTES DON'T NEED TO BE LOGGED SO REMOVE THEM.
+                        if (durationSeconds < 300) {
                             jobs.Remove(jobid);
                         }
-                          //Check jobs less 5 min, 
-                        else if (lessthaan5Mins) {
-                             jobs.Remove(jobid);
+                        // ANY JOB MORE THAN 5MIN BUT LESS THAN 10MIN -  WARNING
+                        else if (durationSeconds > 300 && durationSeconds < 600) {
+                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"WARNING: Job {jobid} took more than 5 minutes"});
+                            jobs.Remove(jobid);
+                        }
+                             // ANY JOB MORE THAN 10MIN -  ERROR
+                        else if (durationSeconds > 600) {
+                            errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"ERROR: Job {jobid} took more than 10 minutes"});    
+                            jobs.Remove(jobid);
                         }
                 }
             }         

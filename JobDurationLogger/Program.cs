@@ -7,7 +7,7 @@ using System.IO;
         static void Main()
         {
             const string filePath = "files/logs.csv"; // Update this path as needed
-            ILogProcessor logProcessor = new LogProcessor(new JobDurationLogger());
+            ILogProcessor logProcessor = new LogProcessor();
 
             //check if file exists
             if (!File.Exists(filePath))

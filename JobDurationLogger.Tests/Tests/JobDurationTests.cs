@@ -9,12 +9,10 @@ namespace JobDurationLogger.Tests
 {
     public class LogProcessorTests
     {
-    private readonly Mock<IJobDurationLogger> _mockLogger;
     private readonly LogProcessor _logProcessor;
 
     public LogProcessorTests () {
-        _mockLogger = new Mock<IJobDurationLogger>();
-        _logProcessor = new LogProcessor(_mockLogger.Object);
+        _logProcessor = new LogProcessor();
     }
         
         // TEST 1 
@@ -27,8 +25,6 @@ namespace JobDurationLogger.Tests
             var logContent = @"
                 12:00:00,Job A,START,1001
                 12:06:00,Job A,END,1001";
-
-            _mockLogger.Setup(x => x.TookLongerThanExpected(360, 5, 10)).Returns(true);
 
             var filePath = WriteLogToTempFile(logContent);
 
@@ -52,8 +48,6 @@ namespace JobDurationLogger.Tests
                 12:00:00,Job A,START,1002
                 12:11:00,Job A,END,1002";
 
-            _mockLogger.Setup(x => x.TookLongerThanExpected(660, 10, 100)).Returns(true);
-
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
@@ -74,8 +68,6 @@ namespace JobDurationLogger.Tests
                 12:00:00,Job C,START,1003
                 12:03:00,Job C,END,1003";
 
-            _mockLogger.Setup(l => l.TookLongerThanExpected(180, 0, 5)).Returns(true);
-
             var filePath = WriteLogToTempFile(logContent);
             // Act
             var model = _logProcessor.ProcessLogFile(filePath);
@@ -94,8 +86,6 @@ namespace JobDurationLogger.Tests
                 12:00:00,Job C,START,1004";
 
             var filePath = WriteLogToTempFile(logContent);
-
-            _mockLogger.Setup(x => x.TookLongerThanExpected(660, 10, 100)).Returns(true);
 
             // Act
             var model = _logProcessor.ProcessLogFile(filePath);
