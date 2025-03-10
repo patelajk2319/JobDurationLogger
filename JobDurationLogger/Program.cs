@@ -7,7 +7,7 @@ using System.IO;
         static void Main()
         {
             const string filePath = "files/logs.csv"; // Update this path as needed
-            ILogProcessor logProcessor = new LogProcessor();
+            ILogProcessor logProcessor = new LogProcessor(300, 600);
 
             //check if file exists
             if (!File.Exists(filePath))
@@ -16,7 +16,6 @@ using System.IO;
                 return;
             }
             // process the logs
-            
             var errors = logProcessor.ProcessLogFile(filePath);
 
             foreach (var error in errors) {

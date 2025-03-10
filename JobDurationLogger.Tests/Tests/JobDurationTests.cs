@@ -12,7 +12,7 @@ namespace JobDurationLogger.Tests
     private readonly LogProcessor _logProcessor;
 
     public LogProcessorTests () {
-        _logProcessor = new LogProcessor();
+        _logProcessor = new LogProcessor(300, 600);
     }
         
         // TEST 1 

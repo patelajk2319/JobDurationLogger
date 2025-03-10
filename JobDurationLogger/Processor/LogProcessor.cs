@@ -5,6 +5,13 @@ using System.IO;
 
 public class LogProcessor : ILogProcessor
     {
+        private readonly int _minJobTimeSeconds;
+        private readonly int _maxJobTimeSeconds;
+
+        public LogProcessor(int MinJobTimeSeconds, int MaxJobTimeSeconds) {
+            _minJobTimeSeconds = MinJobTimeSeconds;
+            _maxJobTimeSeconds = MaxJobTimeSeconds;
+        }
         public List<ErrorModel> ProcessLogFile(string filePath)
         {
             var jobs = new Dictionary<string, DateTime>();
@@ -42,16 +49,16 @@ public class LogProcessor : ILogProcessor
                         var durationSeconds = (time - startTime).TotalSeconds;
 
                          //ANY JOB LESS THAN 5 MINUTES DON'T NEED TO BE LOGGED SO REMOVE THEM.
-                        if (durationSeconds < 300) {
+                        if (durationSeconds < _minJobTimeSeconds) {
                             jobs.Remove(jobid);
                         }
                         // ANY JOB MORE THAN 5MIN BUT LESS THAN 10MIN -  WARNING
-                        else if (durationSeconds > 300 && durationSeconds < 600) {
+                        else if (durationSeconds > _minJobTimeSeconds && durationSeconds < _maxJobTimeSeconds) {
                             errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"WARNING: Job {jobid} took more than 5 minutes"});
                             jobs.Remove(jobid);
                         }
                              // ANY JOB MORE THAN 10MIN -  ERROR
-                        else if (durationSeconds > 600) {
+                        else if (durationSeconds > _maxJobTimeSeconds) {
                             errorModel.Add(new ErrorModel{ Id= jobid, DurationMessage = $"ERROR: Job {jobid} took more than 10 minutes"});    
                             jobs.Remove(jobid);
                         }
