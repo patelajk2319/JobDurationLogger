@@ -3,33 +3,42 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using System.Globalization;
+using Moq;
 
 namespace JobDurationLogger.Tests
 {
     public class LogProcessorTests
     {
+    private readonly Mock<IJobDurationLogger> _mockLogger;
+    private readonly LogProcessor _logProcessor;
+
+    public LogProcessorTests () {
+        _mockLogger = new Mock<IJobDurationLogger>();
+        _logProcessor = new LogProcessor(_mockLogger.Object);
+    }
         
         // TEST 1 
         [Fact]
         public void ProcessLogFile_ShouldLogWarning_ForJobExceeding_5_Minutes()
         {
             // Arrange
-            var mockLogger = new MockJobDurationLogger();
-            var processor = new LogProcessor(mockLogger);
             var expectedMessage = "WARNING: Job 1001 took more than 5 minutes";
 
             var logContent = @"
                 12:00:00,Job A,START,1001
                 12:06:00,Job A,END,1001";
 
+            _mockLogger.Setup(x => x.TookLongerThanExpected(360, 5, 10)).Returns(true);
+
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            var model = processor.ProcessLogFile(filePath);
+            var model = _logProcessor.ProcessLogFile(filePath);
             var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains(acutalMessage, expectedMessage);
+            Assert.Single(model); // Single Record 
+            Assert.Contains(acutalMessage, expectedMessage); //check message
         }
 
         // TEST 2
@@ -37,22 +46,23 @@ namespace JobDurationLogger.Tests
         public void ProcessLogFile_ShouldLogError_ForJobExceeding_10_Minutes()
         {
             // Arrange
-            var mockLogger = new MockJobDurationLogger();
-            var processor = new LogProcessor(mockLogger);
-            var expectedMessage = "ERROR: Job 1001 took more than 10 minutes";
+            var expectedMessage = "ERROR: Job 1002 took more than 10 minutes";
 
             var logContent = @"
-                12:00:00,Job A,START,1001
-                12:11:00,Job A,END,1001";
+                12:00:00,Job A,START,1002
+                12:11:00,Job A,END,1002";
+
+            _mockLogger.Setup(x => x.TookLongerThanExpected(660, 10, 100)).Returns(true);
 
             var filePath = WriteLogToTempFile(logContent);
 
             // Act
-            var model = processor.ProcessLogFile(filePath);
+            var model = _logProcessor.ProcessLogFile(filePath);
             var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains(acutalMessage, expectedMessage);
+            Assert.Single(model); // Single Record 
+            Assert.Contains(acutalMessage, expectedMessage); //check message
         }
 
         // TEST 3
@@ -60,42 +70,40 @@ namespace JobDurationLogger.Tests
         public void ProcessLogFile_ShouldNotLog_For_Good_Job()
         {
             // Arrange
-            var mockLogger = new MockJobDurationLogger();
-            var processor = new LogProcessor(mockLogger);
-
             var logContent = @"
-                12:00:00,Job C,START,3003
-                12:03:00,Job C,END,3003";
+                12:00:00,Job C,START,1003
+                12:03:00,Job C,END,1003";
+
+            _mockLogger.Setup(l => l.TookLongerThanExpected(180, 0, 5)).Returns(true);
 
             var filePath = WriteLogToTempFile(logContent);
-
             // Act
-            var model = processor.ProcessLogFile(filePath);
+            var model = _logProcessor.ProcessLogFile(filePath);
 
             // Assert
-            Assert.Empty(model);
+            Assert.Empty(model); // no data should be returned 
         }
-
         // TEST 4 - 
         [Fact]
         public void ProcessLogFile_ShouldLogWarning_For_No_End()
         {
             // Arrange
-            var mockLogger = new MockJobDurationLogger();
-            var processor = new LogProcessor(mockLogger);
-            var expectedMessage = "WARNING: Job 3003 started but did not finish";
+            var expectedMessage = "WARNING: Job 1004 started but did not finish";
 
             var logContent = @"
-                12:00:00,Job C,START,3003";
+                12:00:00,Job C,START,1004";
 
             var filePath = WriteLogToTempFile(logContent);
 
+            _mockLogger.Setup(x => x.TookLongerThanExpected(660, 10, 100)).Returns(true);
+
             // Act
-            var model = processor.ProcessLogFile(filePath);
+            var model = _logProcessor.ProcessLogFile(filePath);
             var acutalMessage = model[0].DurationMessage;
 
             // Assert
-            Assert.Contains(acutalMessage, expectedMessage);
+            Assert.Single(model); // Single Record 
+            Assert.Contains(acutalMessage, expectedMessage); // Check Message
 
         }
 
